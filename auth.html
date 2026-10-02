@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>MartyCart — Login / Register</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .card {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    width: 100%;
+    max-width: 420px;
+    padding: 40px 32px;
+  }
+  h1 {
+    font-size: 24px;
+    color: #1a1a2e;
+    margin-bottom: 8px;
+    text-align: center;
+  }
+  .subtitle {
+    color: #6b7280;
+    font-size: 14px;
+    text-align: center;
+    margin-bottom: 28px;
+  }
+  .tabs {
+    display: flex;
+    background: #f3f4f6;
+    border-radius: 10px;
+    padding: 4px;
+    margin-bottom: 24px;
+  }
+  .tab {
+    flex: 1;
+    padding: 10px;
+    text-align: center;
+    cursor: pointer;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #6b7280;
+    transition: all 0.2s;
+    user-select: none;
+  }
+  .tab.active {
+    background: #fff;
+    color: #1a1a2e;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  }
+  .form { display: none; }
+  .form.active { display: block; }
+  .field { margin-bottom: 16px; }
+  label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 6px;
+  }
+  input {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1.5px solid #e5e7eb;
+    border-radius: 10px;
+    font-size: 14px;
+    transition: border-color 0.2s;
+    outline: none;
+  }
+  input:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102,126,234,0.15);
+  }
+  button {
+    width: 100%;
+    padding: 13px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 8px;
+    transition: opacity 0.2s;
+  }
+  button:hover { opacity: 0.92; }
+  button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+  .message {
+    margin-top: 16px;
+    padding: 12px 14px;
+    border-radius: 10px;
+    font-size: 13px;
+    display: none;
+    word-break: break-word;
+  }
+  .message.error {
+    background: #fef2f2;
+    color: #b91c1c;
+    border: 1px solid #fecaca;
+    display: block;
+  }
+  .message.success {
+    background: #f0fdf4;
+    color: #15803d;
+    border: 1px solid #bbf7d0;
+    display: block;
+  }
+  .message pre {
+    white-space: pre-wrap;
+    font-size: 12px;
+    margin-top: 6px;
+    font-family: monospace;
+  }
+  .token-box {
+    margin-top: 16px;
+    padding: 12px;
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    font-size: 12px;
+    font-family: monospace;
+    word-break: break-all;
+    display: none;
+  }
+  .token-box strong { display: block; margin-bottom: 6px; color: #374151; }
+</style>
+</head>
+<body>
+  <div class="card">
+    <h1>MartyCart</h1>
+    <p class="subtitle">Sign in or create an account</p>
+
+    <div class="tabs">
+      <div class="tab active" data-tab="login">Login</div>
+      <div class="tab" data-tab="register">Register</div>
+    </div>
+
+    <!-- LOGIN FORM -->
+    <form class="form active" id="login-form">
+      <div class="field">
+        <label for="login-username">Username or Email</label>
+        <input type="text" id="login-username" autocomplete="username" required />
+      </div>
+      <div class="field">
+        <label for="login-password">Password</label>
+        <input type="password" id="login-password" autocomplete="current-password" required />
+      </div>
+      <button type="submit">Login</button>
+    </form>
+
+    <!-- REGISTER FORM -->
+    <form class="form" id="register-form">
+      <div class="field">
+        <label for="reg-username">Username</label>
+        <input type="text" id="reg-username" autocomplete="username" required />
+      </div>
+      <div class="field">
+        <label for="reg-email">Email</label>
+        <input type="email" id="reg-email" autocomplete="email" required />
+      </div>
+      <div class="field">
+        <label for="reg-password">Password</label>
+        <input type="password" id="reg-password" autocomplete="new-password" required />
+      </div>
+      <div class="field">
+        <label for="reg-password2">Confirm Password</label>
+        <input type="password" id="reg-password2" autocomplete="new-password" required />
+      </div>
+      <button type="submit">Create Account</button>
+    </form>
+
+    <div class="message" id="message"></div>
+    <div class="token-box" id="token-box"></div>
+  </div>
+
+<script>
+  // ====== CONFIGURE YOUR API BASE URL HERE ======
+  const API_BASE = "http://127.0.0.1:8000";
+  // ==============================================
+
+  const LOGIN_URL    = `${API_BASE}/api/auth/login/`;
+  const REGISTER_URL = `${API_BASE}/api/auth/register/`;
+
+  const tabs = document.querySelectorAll(".tab");
+  const forms = {
+    login: document.getElementById("login-form"),
+    register: document.getElementById("register-form"),
+  };
+  const messageEl = document.getElementById("message");
+  const tokenBox  = document.getElementById("token-box");
+
+  // ---- Tab switching ----
+  tabs.forEach(tab => {
+    tab.addEventListener("click", () => {
+      tabs.forEach(t => t.classList.remove("active"));
+      tab.classList.add("active");
+      Object.values(forms).forEach(f => f.classList.remove("active"));
+      forms[tab.dataset.tab].classList.add("active");
+      hideMessage();
+      tokenBox.style.display = "none";
+    });
+  });
+
+  // ---- Helpers ----
+  function showMessage(text, type = "error", extra = "") {
+    messageEl.className = `message ${type}`;
+    messageEl.innerHTML = extra ? `${text}<pre>${extra}</pre>` : text;
+    messageEl.style.display = "block";
+  }
+  function hideMessage() {
+    messageEl.style.display = "none";
+    messageEl.textContent = "";
+  }
+
+  async function postJSON(url, data) {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+    let body;
+    try { body = await res.json(); }
+    catch { body = { detail: await res.text() }; }
+    return { ok: res.ok, status: res.status, body };
+  }
+
+  // ---- LOGIN ----
+  forms.login.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    hideMessage();
+    tokenBox.style.display = "none";
+
+    const username = document.getElementById("login-username").value.trim();
+    const password = document.getElementById("login-password").value;
+
+    const btn = forms.login.querySelector("button");
+    btn.disabled = true;
+    btn.textContent = "Logging in...";
+
+    try {
+      const { ok, status, body } = await postJSON(LOGIN_URL, { username, password });
+
+      if (ok) {
+        showMessage("Login successful ✓", "success");
+
+        // Store the token if the API returns one
+        const token = body.access || body.token || body.key || null;
+        if (token) {
+          localStorage.setItem("access_token", token);
+          tokenBox.style.display = "block";
+          tokenBox.innerHTML = `<strong>Access Token (saved to localStorage)</strong>${token}`;
+        } else {
+          tokenBox.style.display = "block";
+          tokenBox.innerHTML = `<strong>Response</strong>${JSON.stringify(body, null, 2)}`;
+        }
+      } else {
+        const detail = body.detail || body.message || JSON.stringify(body);
+        showMessage(`Login failed (HTTP ${status})`, "error", detail);
+      }
+    } catch (err) {
+      showMessage("Network error — is the Django server running?", "error", err.message);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = "Login";
+    }
+  });
+
+  // ---- REGISTER ----
+  forms.register.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    hideMessage();
+    tokenBox.style.display = "none";
+
+    const username = document.getElementById("reg-username").value.trim();
+    const email    = document.getElementById("reg-email").value.trim();
+    const password = document.getElementById("reg-password").value;
+    const password_confirm = document.getElementById("reg-password2").value;
+
+    if (password !== password_confirm) {
+      showMessage("Passwords do not match.", "error");
+      return;
+    }
+
+    const btn = forms.register.querySelector("button");
+    btn.disabled = true;
+    btn.textContent = "Creating account...";
+
+    try {
+      const { ok, status, body } = await postJSON(REGISTER_URL, {
+        username, email, password,password_confirm
+      });
+
+      if (ok) {
+        showMessage("Account created ✓ You can now log in.", "success");
+      } else {
+        // Flatten DRF validation errors nicely
+        const detail = body.detail
+          || Object.entries(body).map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join(", ") : v}`).join("\n")
+          || JSON.stringify(body);
+        showMessage(`Registration failed (HTTP ${status})`, "error", detail);
+      }
+    } catch (err) {
+      showMessage("Network error — is the Django server running?", "error", err.message);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = "Create Account";
+    }
+  });
+</script>
+</body>
+</html>
