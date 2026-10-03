@@ -1,9 +1,14 @@
 from django.contrib.auth.models import User
+from django.contrib.auth.hashers import make_password
+from django.utils import timezone
+
 from rest_framework import serializers
 from django.db import transaction
+from datetime import timedelta
 
-from .models import Address, Profile, MartyCoinWallet, MartyCoinTransaction
-from .services import process_referral_reward
+from .models import Address, Profile, MartyCoinWallet, MartyCoinTransaction, PendingRegistration
+from .services.services import process_referral_reward, create_phone_otp
+from .services.sms import send_otp_sms
 class RegisterSerializer(serializers.ModelSerializer):
 
     password = serializers.CharField(
@@ -124,25 +129,27 @@ class RegisterSerializer(serializers.ModelSerializer):
         phone = validated_data.pop("phone")
 
         date_of_birth = validated_data.pop(
-            "date_of_birth"
-        )
-
-        gender = validated_data.pop("gender")
-
-        referrer_profile = validated_data.pop(
-            "referrer_profile",
+            "date_of_birth",
             None
         )
 
-        validated_data.pop(
+        gender = validated_data.pop(
+            "gender",
+            None
+        )
+
+        referral_code = validated_data.pop(
             "referral_code",
             None
         )
 
-        user = User.objects.create_user(
+        PendingRegistration.objects.filter(
+            phone=phone
+        ).delete()
+
+        pending = PendingRegistration.objects.create(
             username=validated_data["username"],
             email=validated_data["email"],
-            password=password,
             first_name=validated_data.get(
                 "first_name",
                 ""
@@ -150,25 +157,25 @@ class RegisterSerializer(serializers.ModelSerializer):
             last_name=validated_data.get(
                 "last_name",
                 ""
-            )
-        )
-
-        Profile.objects.create(
-            user=user,
+            ),
+            password_hash=make_password(password),
             phone=phone,
             date_of_birth=date_of_birth,
             gender=gender,
-            referred_by=(
-                referrer_profile.user
-                if referrer_profile
-                else None
-            )
+            referral_code=referral_code,
+            expires_at=timezone.now() + timedelta(
+                minutes=10
+            ),
         )
-        MartyCoinWallet.objects.create(user=user)
 
-        if referrer_profile:
-            process_referral_reward(new_user=user, referrer_user=referrer_profile.user)
-        return user
+        otp = create_phone_otp(phone)
+
+        send_otp_sms(
+            phone=phone,
+            otp=otp
+        )
+
+        return pending
 
 class ProfileSerializer(serializers.ModelSerializer):
 
@@ -265,14 +272,3 @@ class MartyCoinWalletSerializer(serializers.ModelSerializer):
             "balance",
             "transactions",
         ]
-
-class SendOTPSerializer(serializers.Serializer):
-    phone = serializers.CharField(max_length=15)
-
-
-class VerifyOTPSerializer(serializers.Serializer):
-    phone = serializers.CharField(max_length=15)
-    otp = serializers.CharField(
-        min_length=6,
-        max_length=6
-    )

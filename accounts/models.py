@@ -211,3 +211,40 @@ class MartyCoinTransaction(models.Model):
             f"{self.transaction_type} - "
             f"{self.amount}"
         )
+
+class PendingRegistration(models.Model):
+    username = models.CharField(max_length=150)
+    first_name = models.CharField(max_length=150, blank=True)
+    last_name = models.CharField(max_length=150, blank=True)
+
+    email = models.EmailField()
+
+    password_hash = models.CharField(max_length=255)
+
+    phone = models.CharField(max_length=15)
+
+    date_of_birth = models.DateField(
+        null=True,
+        blank=True
+    )
+
+    gender = models.CharField(
+        max_length=10,
+        blank=True,
+        null=True
+    )
+
+    referral_code = models.CharField(
+        max_length=20,
+        blank=True,
+        null=True
+    )
+
+    expires_at = models.DateTimeField()
+
+    created_at = models.DateTimeField(
+        auto_now_add=True
+    )
+
+    def __str__(self):
+        return f"{self.phone} - Pending Registration"

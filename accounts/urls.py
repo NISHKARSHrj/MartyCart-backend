@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import MeView, RegisterView, AddressDetailView, AddressListCreateView, ReferralListView, WalletView, SendOTPView, VerifyOTPView
+from .views import MeView, RegisterView, AddressDetailView, AddressListCreateView, ReferralListView, VerifyRegistrationOTPView, WalletView
 
 urlpatterns = [
     # register user
@@ -41,13 +41,8 @@ urlpatterns = [
     ),
     # otp
     path(
-        "send-otp/",
-        SendOTPView.as_view(),
-        name="send-otp"
-    ),
-    path(
-        "verify-otp/",
-        VerifyOTPView.as_view(),
-        name="verify-otp"
-    )
+        "verify-registration-otp/",
+        VerifyRegistrationOTPView.as_view(),
+        name="verify-registration-otp",
+),
 ]
