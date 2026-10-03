@@ -21,7 +21,7 @@ class ProductAdmin(admin.ModelAdmin):
 
 @admin.register(ProductImage)
 class ProductImageAdmin(admin.ModelAdmin):
-    list_display = ("product", "is_Primary")
+    list_display = ("product", "is_primary")
 
 @admin.register(Wishlist)
 class WishlistAdmin(admin.ModelAdmin):

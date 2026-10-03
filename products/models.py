@@ -78,7 +78,7 @@ class ProductImage(models.Model):
         blank=True
     )
 
-    is_Primary = models.BooleanField(
+    is_primary = models.BooleanField(
         default=False
     )
 

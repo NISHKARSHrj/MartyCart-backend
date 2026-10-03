@@ -21,7 +21,7 @@ from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
 )
-
+from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerSplitView 
 from products.models import Wishlist
 
 def health_check(request):
@@ -37,6 +37,8 @@ urlpatterns = [
     # just health check
     path('api/health/', health_check, name='health_check'),
 
+    path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
+    path("api/docs/", SpectacularSwaggerSplitView.as_view(url_name="schema"), name="swagger-ui"),
     # auth
     path(
         'api/auth/',
